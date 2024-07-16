@@ -1,0 +1,150 @@
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+
+public class WelcomePage extends JFrame {
+    private int numberToGuess;
+    private int attemptsLeft;
+    private int totalScore;
+    private boolean gameActive;
+
+    private JTextField guessField;
+    private JLabel feedbackLabel;
+    private JLabel attemptsLabel;
+    private JLabel scoreLabel;
+    private JButton guessButton;
+    private JButton playAgainButton;
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+
+    public WelcomePage() {
+        setTitle("Number Guessing Game");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+
+        createWelcomePage();
+        createGamePage();
+
+        add(mainPanel);
+        initializeGame();
+    }
+
+    private void createWelcomePage() {
+        JPanel welcomePanel = new JPanel(new BorderLayout());
+        welcomePanel.setBackground(Color.CYAN);
+
+        JLabel welcomeLabel = new JLabel("Welcome to the Number Guessing Game!", SwingConstants.CENTER);
+        welcomeLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        welcomeLabel.setForeground(Color.BLUE);
+        welcomePanel.add(welcomeLabel, BorderLayout.CENTER);
+
+        JButton startButton = new JButton("Start Game");
+        startButton.setFont(new Font("Serif", Font.BOLD, 18));
+        startButton.setBackground(Color.GREEN);
+        startButton.setForeground(Color.BLACK);
+        startButton.addActionListener(e -> cardLayout.show(mainPanel, "GamePage"));
+        welcomePanel.add(startButton, BorderLayout.SOUTH);
+
+        mainPanel.add(welcomePanel, "WelcomePage");
+    }
+
+    private void createGamePage() {
+        JPanel gamePanel = new JPanel(new GridLayout(6, 1));
+
+        JLabel welcomeLabel = new JLabel("Guess the number between 1 and 100", SwingConstants.CENTER);
+        gamePanel.add(welcomeLabel);
+
+        guessField = new JTextField();
+        gamePanel.add(guessField);
+
+        guessButton = new JButton("Guess");
+        gamePanel.add(guessButton);
+
+        feedbackLabel = new JLabel("", SwingConstants.CENTER);
+        gamePanel.add(feedbackLabel);
+
+        attemptsLabel = new JLabel("", SwingConstants.CENTER);
+        gamePanel.add(attemptsLabel);
+
+        scoreLabel = new JLabel("Score: 0", SwingConstants.CENTER);
+        gamePanel.add(scoreLabel);
+
+        playAgainButton = new JButton("Play Again");
+        playAgainButton.setEnabled(false);
+        gamePanel.add(playAgainButton);
+
+        guessButton.addActionListener(new GuessButtonListener());
+        playAgainButton.addActionListener(new PlayAgainButtonListener());
+
+        mainPanel.add(gamePanel, "GamePage");
+    }
+
+    private void initializeGame() {
+        numberToGuess = (int) (Math.random() * 100) + 1;
+        attemptsLeft = 10;
+        gameActive = true;
+        guessField.setText("");
+        feedbackLabel.setText("Enter your guess:");
+        attemptsLabel.setText("Attempts left: " + attemptsLeft);
+        guessButton.setEnabled(true);
+        playAgainButton.setEnabled(false);
+    }
+
+    private class GuessButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!gameActive) {
+                return;
+            }
+
+            try {
+                int guess = Integer.parseInt(guessField.getText());
+                attemptsLeft--;
+
+                if (guess == numberToGuess) {
+                    feedbackLabel.setText("Correct! The number was " + numberToGuess);
+                    totalScore += attemptsLeft + 1;
+                    gameActive = false;
+                } else if (guess < numberToGuess) {
+                    feedbackLabel.setText("Too low. Try again.");
+                } else {
+                    feedbackLabel.setText("Too high. Try again.");
+                }
+
+                attemptsLabel.setText("Attempts left: " + attemptsLeft);
+
+                if (attemptsLeft <= 0 && guess != numberToGuess) {
+                    feedbackLabel.setText("Out of attempts! The number was " + numberToGuess);
+                    gameActive = false;
+                }
+
+                if (!gameActive) {
+                    guessButton.setEnabled(false);
+                    playAgainButton.setEnabled(true);
+                }
+
+                scoreLabel.setText("Score: " + totalScore);
+
+            } catch (NumberFormatException ex) {
+                feedbackLabel.setText("Please enter a valid number.");
+            }
+        }
+    }
+
+    private class PlayAgainButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            initializeGame();
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            WelcomePage game = new WelcomePage();
+            game.setVisible(true);
+        });
+    }
+}
